@@ -29,3 +29,4 @@ let no_enough_signature_to_resolve = "No enough signature to resolve the proposa
 let no_proposal = "There is no content in proposal"
 let no_owners = "No owner to be added or removed"
 let amount_is_zero = "Amount should be greater than zero"
+let not_the_same_content = "The bytes doesn't match the packed contents of proposal"

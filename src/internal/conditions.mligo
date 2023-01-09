@@ -63,7 +63,7 @@ let check_proposal (type a) (content: a proposal_content) : unit =
         assert_with_error (Set.cardinal s > 0n) Errors.no_owners
 
 [@inline]
-let check_proposals_content (type a) (proposals_content: (a proposal_content) list) : unit =
+let not_empty_content (type a) (proposals_content: (a proposal_content) list) : unit =
     let () = assert_with_error ((List.length proposals_content) > 0n) Errors.no_proposal in
     List.iter check_proposal proposals_content
 
@@ -73,3 +73,8 @@ let check_setting (type a) (storage : a storage_types) : unit =
     let () = assert_with_error (Set.cardinal storage.owners >= storage.threshold) Errors.no_enough_owner in
     let () = assert_with_error (storage.threshold > 0n) Errors.invalidated_threshold in
     ()
+
+[@inline]
+let check_proposals_content (type a) (bytes : bytes) (proposals_content: (a proposal_content) list) : unit =
+  let pack_proposals_content = Bytes.pack proposals_content in
+  assert_with_error (bytes = pack_proposals_content) Errors.not_the_same_content
