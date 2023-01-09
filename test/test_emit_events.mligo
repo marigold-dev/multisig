@@ -71,7 +71,8 @@ let case_emitted_sign_proposal =
 
       let param1 = (Execute { target = add_contract.originated_address; parameter = 10n; amount = 0tez;} :: param) in
       let action1 = Breath.Context.act_as alice (Helper.create_proposal multisig_contract param1) in
-      let sign_action1 = Breath.Context.act_as bob (Helper.sign_proposal_only multisig_contract 1n true) in
+      let pack1 = Helper.pack_proposal_content multisig_contract 1n in
+      let sign_action1 = Breath.Context.act_as bob (Helper.sign_proposal_only multisig_contract 1n true pack1) in
       let multisig_address = multisig_contract.originated_address in
 
       let events = (Util.get_last_events_from multisig_address "sign_proposal" : (storage_types_proposal_id * address * bool) list) in
@@ -100,8 +101,9 @@ let case_emitted_exe_proposal =
 
       let param1 = (Execute { target = add_contract.originated_address; parameter = 10n; amount = 0tez;} :: param) in
       let action1 = Breath.Context.act_as alice (Helper.create_proposal multisig_contract param1) in
-      let sign_action1 = Breath.Context.act_as bob (Helper.sign_proposal_only multisig_contract 1n true) in
-      let exe_action1 = Breath.Context.act_as bob (Helper.resolve_proposal multisig_contract 1n) in
+      let pack1 = Helper.pack_proposal_content multisig_contract 1n in
+      let sign_action1 = Breath.Context.act_as bob (Helper.sign_proposal_only multisig_contract 1n true pack1) in
+      let exe_action1 = Breath.Context.act_as bob (Helper.resolve_proposal multisig_contract 1n pack1) in
 
       let multisig_address = multisig_contract.originated_address in
       let events = (Util.get_last_events_from multisig_address "resolve_proposal" : (storage_types_proposal_id * address) list) in
@@ -130,7 +132,8 @@ let case_emitted_sign_and_resolve_proposal =
 
       let param1 = (Execute { target = add_contract.originated_address; parameter = 10n; amount = 0tez;} :: param) in
       let action1 = Breath.Context.act_as alice (Helper.create_proposal multisig_contract param1) in
-      let sign_action1 = Breath.Context.act_as bob (Helper.sign_and_resolve_proposal multisig_contract 1n true) in
+      let pack1 = Helper.pack_proposal_content multisig_contract 1n in
+      let sign_action1 = Breath.Context.act_as bob (Helper.sign_and_resolve_proposal multisig_contract 1n true pack1) in
       let multisig_address = multisig_contract.originated_address in
 
       let sign_events = (Util.get_last_events_from multisig_address "sign_proposal" : (storage_types_proposal_id * address * bool) list) in
@@ -163,7 +166,8 @@ let case_emitted_sign_proposal_without_exe_proposal =
 
       let param1 = (Execute { target = add_contract.originated_address; parameter = 10n; amount = 0tez;} :: param) in
       let action1 = Breath.Context.act_as alice (Helper.create_proposal multisig_contract param1) in
-      let sign_action1 = Breath.Context.act_as bob (Helper.sign_and_resolve_proposal multisig_contract 1n true) in
+      let pack1 = Helper.pack_proposal_content multisig_contract 1n in
+      let sign_action1 = Breath.Context.act_as bob (Helper.sign_and_resolve_proposal multisig_contract 1n true pack1) in
       let multisig_address = multisig_contract.originated_address in
 
       let sign_events = (Util.get_last_events_from multisig_address "sign_proposal" : (storage_types_proposal_id * address * bool) list) in

@@ -19,6 +19,7 @@
 #import "ligo-breathalyzer/lib/lib.mligo" "Breath"
 #include "../../src/internal/contract.mligo"
 #import "../../src/internal/proposal_content.mligo" "Proposal_content"
+#import "./util.mligo" "Util"
 
 type proposal_content = Proposal_content.Types.t
 
@@ -40,14 +41,19 @@ let originate (type a) (level: Breath.Logger.level) (main : a request -> a resul
     init_storage
     amount
 
+let pack_proposal_content (type a) (contract : (a parameter_types, a storage_types) originated) (proposal_id : nat) : bytes =
+  let storage = Breath.Contract.storage_of contract in
+  let proposal = Util.unopt (Big_map.find_opt proposal_id storage.proposals) "proposal doesn't exist" in
+  Bytes.pack proposal.contents
+
 let create_proposal (type a) (contract : (a parameter_types, a storage_types) originated) (proposal : (a proposal_content) list) () =
   Breath.Contract.transfert_with_entrypoint_to contract "create_proposal" proposal 0tez
 
-let sign_and_resolve_proposal (type a) (contract : (a parameter_types, a storage_types) originated) (proposal_number : nat) (agreement : bool) () =
-  Breath.Contract.transfert_with_entrypoint_to contract "sign_and_resolve_proposal" (proposal_number, agreement) 0tez
+let sign_and_resolve_proposal (type a) (contract : (a parameter_types, a storage_types) originated) (proposal_id : nat) (agreement : bool) (bytes : bytes) () =
+  Breath.Contract.transfert_with_entrypoint_to contract "sign_and_resolve_proposal" (proposal_id, agreement, bytes) 0tez
 
-let sign_proposal_only (type a) (contract : (a parameter_types, a storage_types) originated) (proposal_number : nat) (agreement : bool) () =
-  Breath.Contract.transfert_with_entrypoint_to contract "sign_proposal_only" (proposal_number, agreement) 0tez
+let sign_proposal_only (type a) (contract : (a parameter_types, a storage_types) originated) (proposal_id : nat) (agreement : bool) (bytes : bytes) () =
+  Breath.Contract.transfert_with_entrypoint_to contract "sign_proposal_only" (proposal_id, agreement, bytes) 0tez
 
-let resolve_proposal (type a) (contract : (a parameter_types, a storage_types) originated) (proposal_number : nat) () =
-  Breath.Contract.transfert_with_entrypoint_to contract "resolve_proposal" proposal_number 0tez
+let resolve_proposal (type a) (contract : (a parameter_types, a storage_types) originated) (proposal_id : nat) (bytes : bytes) () =
+  Breath.Contract.transfert_with_entrypoint_to contract "resolve_proposal" (proposal_id, bytes) 0tez

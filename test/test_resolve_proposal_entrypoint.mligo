@@ -40,14 +40,16 @@ let case_resolve_proposal =
       (* create proposal 1 *)
       let param1 = (Execute { target = add_contract.originated_address; parameter = 10n; amount = 0tez;} :: param) in
       let create_action1 = Breath.Context.act_as alice (Helper.create_proposal multisig_contract param1) in
-      let sign_action1 = Breath.Context.act_as bob (Helper.sign_proposal_only multisig_contract 1n true) in
-      let exe_action1 = Breath.Context.act_as bob (Helper.resolve_proposal multisig_contract 1n) in
+      let pack1 = Helper.pack_proposal_content multisig_contract 1n in
+      let sign_action1 = Breath.Context.act_as bob (Helper.sign_proposal_only multisig_contract 1n true pack1) in
+      let exe_action1 = Breath.Context.act_as bob (Helper.resolve_proposal multisig_contract 1n pack1) in
 
       (* create proposal 2 *)
       let param2 = (Transfer { target = bob.address; parameter = (); amount = 20tez;} :: param) in
       let create_action2 = Breath.Context.act_as bob (Helper.create_proposal multisig_contract param2) in
-      let sign_action2 = Breath.Context.act_as carol (Helper.sign_proposal_only multisig_contract 2n true) in
-      let exe_action2 = Breath.Context.act_as alice (Helper.resolve_proposal multisig_contract 2n) in
+      let pack2 = Helper.pack_proposal_content multisig_contract 2n in
+      let sign_action2 = Breath.Context.act_as carol (Helper.sign_proposal_only multisig_contract 2n true pack2) in
+      let exe_action2 = Breath.Context.act_as alice (Helper.resolve_proposal multisig_contract 2n pack2) in
 
       let balance = Breath.Contract.balance_of multisig_contract in
       let storage = Breath.Contract.storage_of multisig_contract in
@@ -105,9 +107,10 @@ let case_fail_to_resolve_proposal_twice =
       (* create proposal 1 *)
       let param1 = (Execute { target = add_contract.originated_address; parameter = 10n; amount = 0tez;} :: param) in
       let create_action1 = Breath.Context.act_as alice (Helper.create_proposal multisig_contract param1) in
-      let sign_action1 = Breath.Context.act_as bob (Helper.sign_proposal_only multisig_contract 1n true) in
-      let exe_action1 = Breath.Context.act_as bob (Helper.resolve_proposal multisig_contract 1n) in
-      let exe_action2 = Breath.Context.act_as bob (Helper.resolve_proposal multisig_contract 1n) in
+      let pack1 = Helper.pack_proposal_content multisig_contract 1n in
+      let sign_action1 = Breath.Context.act_as bob (Helper.sign_proposal_only multisig_contract 1n true pack1) in
+      let exe_action1 = Breath.Context.act_as bob (Helper.resolve_proposal multisig_contract 1n pack1) in
+      let exe_action2 = Breath.Context.act_as bob (Helper.resolve_proposal multisig_contract 1n pack1) in
 
       Breath.Result.reduce [
         create_action1
@@ -130,8 +133,9 @@ let case_not_owner =
 
       let param1 = (Execute { target = add_contract.originated_address; parameter = 10n; amount = 0tez;} :: param) in
       let create_action1 = Breath.Context.act_as alice (Helper.create_proposal multisig_contract param1) in
-      let sign_action1 = Breath.Context.act_as bob (Helper.sign_proposal_only multisig_contract 1n true) in
-      let exe_action1 = Breath.Context.act_as carol (Helper.resolve_proposal multisig_contract 1n) in
+      let pack1 = Helper.pack_proposal_content multisig_contract 1n in
+      let sign_action1 = Breath.Context.act_as bob (Helper.sign_proposal_only multisig_contract 1n true pack1) in
+      let exe_action1 = Breath.Context.act_as carol (Helper.resolve_proposal multisig_contract 1n pack1) in
 
       Breath.Result.reduce [
         create_action1
@@ -153,8 +157,9 @@ let case_no_enough_signature =
 
       let param1 = (Execute { target = add_contract.originated_address; parameter = 10n; amount = 0tez;} :: param) in
       let create_action1 = Breath.Context.act_as alice (Helper.create_proposal multisig_contract param1) in
-      let sign_action1 = Breath.Context.act_as bob (Helper.sign_proposal_only multisig_contract 1n true) in
-      let exe_action1 = Breath.Context.act_as bob (Helper.resolve_proposal multisig_contract 1n) in
+      let pack1 = Helper.pack_proposal_content multisig_contract 1n in
+      let sign_action1 = Breath.Context.act_as bob (Helper.sign_proposal_only multisig_contract 1n true pack1) in
+      let exe_action1 = Breath.Context.act_as bob (Helper.resolve_proposal multisig_contract 1n pack1) in
 
       Breath.Result.reduce [
         create_action1
