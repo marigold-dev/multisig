@@ -167,10 +167,36 @@ let case_no_enough_signature =
       ; Breath.Expect.fail_with_message "No enough signature to resolve the proposal" exe_action1
       ])
 
+let case_wrong_content_bytes =
+  Breath.Model.case
+  "test proide wrong content bytes"
+  "fail to resolve proposal"
+    (fun (level: Breath.Logger.level) ->
+      let (_, (alice, bob, carol)) = Breath.Context.init_default () in
+      let owners : address set = Set.literal [alice.address; bob.address; carol.address] in
+      let init_storage = Helper.init_storage (owners, 1n) in
+      let multisig_contract = Helper.originate level Mock_contract.multisig_main init_storage 100tez in
+      let add_contract = Breath.Contract.originate level "add_contr" Mock_contract.add_main 1n 0tez in
+      let param = ([] : (nat proposal_content) list) in
+
+      (* create proposal 1 *)
+      let param1 = (Execute { target = add_contract.originated_address; parameter = 10n; amount = 0tez;} :: param) in
+      let create_action1 = Breath.Context.act_as alice (Helper.create_proposal multisig_contract param1) in
+      let pack1 = Helper.pack_proposal_content multisig_contract 1n in
+      let sign_action1 = Breath.Context.act_as bob (Helper.sign_proposal_only multisig_contract 1n true pack1) in
+      let exe_action1 = Breath.Context.act_as bob (Helper.resolve_proposal multisig_contract 1n 0x00) in
+
+      Breath.Result.reduce [
+        create_action1
+      ; sign_action1
+      ; Breath.Expect.fail_with_message "The bytes doesn't match the packed contents of proposal" exe_action1
+      ])
+
 let test_suite =
-  Breath.Model.suite "Suite for executing proposal" [
+  Breath.Model.suite "Suite for resolving proposal" [
     case_resolve_proposal
   ; case_fail_to_resolve_proposal_twice
   ; case_not_owner
   ; case_no_enough_signature
+  ; case_wrong_content_bytes
   ]
