@@ -48,7 +48,7 @@ let default (type a) (_, s : unit * a storage_types) : a result =
 let create_proposal (type a) (proposal_content, storage : (a proposal_content) list * a storage_types) : a result =
     let () = Conditions.only_owner storage in
     let () = Conditions.amount_must_be_zero_tez (Tezos.get_amount ()) in
-    let () = Conditions.check_proposals_content proposal_content in
+    let () = Conditions.not_empty_content proposal_content in
     let proposal = Storage.Op.create_proposal proposal_content in
     let storage = Storage.Op.register_proposal(proposal, storage) in
     let event = Tezos.emit "%create_proposal" (storage.proposal_counter, proposal) in
@@ -58,11 +58,12 @@ let create_proposal (type a) (proposal_content, storage : (a proposal_content) l
  * sign and resolved proposal
  *)
 
-let sign_and_resolve_proposal (type a) (proposal_id, agreement, storage : Parameter.Types.proposal_id * Parameter.Types.agreement * a storage_types) : a result =
+let sign_and_resolve_proposal (type a) (proposal_id, agreement, bytes, storage : Parameter.Types.proposal_id * Parameter.Types.agreement * bytes * a storage_types) : a result =
     let () = Conditions.only_owner storage in
     let proposal = Storage.Op.retrieve_proposal(proposal_id, storage) in
     let () = Conditions.unresolved proposal.state in
     let () = Conditions.unsigned proposal in
+    let () = Conditions.check_proposals_content bytes proposal.contents in
     let owner = Tezos.get_sender () in
     let proposal = Storage.Op.update_signature (proposal, owner, agreement) in
     let proposal = Storage.Op.update_proposal_state (proposal, Set.cardinal storage.owners,storage.threshold) in
@@ -77,11 +78,12 @@ let sign_and_resolve_proposal (type a) (proposal_id, agreement, storage : Parame
  * Proposal signature only
  *)
 
-let sign_proposal_only (type a) (proposal_id, agreement, storage : Parameter.Types.proposal_id * Parameter.Types.agreement * a storage_types) : a result =
+let sign_proposal_only (type a) (proposal_id, agreement, bytes, storage : Parameter.Types.proposal_id * Parameter.Types.agreement * bytes * a storage_types) : a result =
     let () = Conditions.only_owner storage in
     let proposal = Storage.Op.retrieve_proposal(proposal_id, storage) in
     let () = Conditions.unresolved proposal.state in
     let () = Conditions.unsigned proposal in
+    let () = Conditions.check_proposals_content bytes proposal.contents in
     let owner = Tezos.get_sender () in
     let proposal = Storage.Op.update_signature (proposal, owner, agreement) in
     let storage = Storage.Op.update_proposal(proposal_id, proposal, storage) in
@@ -92,13 +94,14 @@ let sign_proposal_only (type a) (proposal_id, agreement, storage : Parameter.Typ
  * Proposal Execution
  *)
 
-let resolve_proposal (type a) (proposal_id, storage : Parameter.Types.proposal_id * a storage_types) : a result =
+let resolve_proposal (type a) (proposal_id, bytes, storage : Parameter.Types.proposal_id * bytes * a storage_types) : a result =
     let () = Conditions.only_owner storage in
     let proposal = Storage.Op.retrieve_proposal(proposal_id, storage) in
     let () = Conditions.unresolved proposal.state in
     let owner = Tezos.get_sender () in
     let proposal = Storage.Op.update_proposal_state (proposal, Set.cardinal storage.owners, storage.threshold) in
     let () = Conditions.ready_to_execute proposal.state in
+    let () = Conditions.check_proposals_content bytes proposal.contents in
     let storage = Storage.Op.update_proposal(proposal_id, proposal, storage) in
     let ops, s = Execution.perform_operations proposal storage in
     let event = Tezos.emit "%resolve_proposal" (proposal_id, owner) in
@@ -110,9 +113,9 @@ let contract (type a) (action, storage : a request) : a result =
     | Default u -> default (u, storage)
     | Create_proposal proposal_params ->
         create_proposal (proposal_params, storage)
-    | Sign_and_resolve_proposal (proposal_id, agreement) ->
-        sign_and_resolve_proposal (proposal_id, agreement, storage)
-    | Sign_proposal_only (proposal_id, agreement) ->
-        sign_proposal_only (proposal_id, agreement, storage)
-    | Resolve_proposal proposal_id ->
-        resolve_proposal (proposal_id, storage)
+    | Sign_and_resolve_proposal (proposal_id, agreement, bytes) ->
+        sign_and_resolve_proposal (proposal_id, agreement, bytes, storage)
+    | Sign_proposal_only (proposal_id, agreement, bytes) ->
+        sign_proposal_only (proposal_id, agreement, bytes, storage)
+    | Resolve_proposal (proposal_id, bytes) ->
+        resolve_proposal (proposal_id, bytes, storage)

@@ -48,7 +48,8 @@ let case_execute_lambda_proposal =
       (* create proposal *)
       let param = Execute_lambda { metadata = None; lambda = call_add_contract } :: param in
       let action = Breath.Context.act_as alice (Helper.create_proposal multisig_contract param) in
-      let sign_action = Breath.Context.act_as bob (Helper.sign_and_resolve_proposal multisig_contract 1n true) in
+      let pack1 = Bytes.pack param in
+      let sign_action = Breath.Context.act_as bob (Helper.sign_and_resolve_proposal multisig_contract 1n true pack1) in
 
       let add_contract_storage = Breath.Contract.storage_of add_contract in
 
